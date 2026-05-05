@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Innotime Rush Deluxe</title>
+  <style>
+    :root{
+      --brand:#595FA9;
+      --brand2:#7C83D4;
+      --brand3:#9399E8;
+      --bg:#F4F5FF;
+      --ink:#1A1D3B;
+      --muted:#6B7280;
+      --white:#FFFFFF;
+      --line:rgba(89,95,169,.14);
+      --glass:rgba(255,255,255,.72);
+      --good:#16A34A;
+      --warn:#D97706;
+      --bad:#DC2626;
+      --gold:#FBBF24;
+      --silver:#CBD5E1;
+      --bronze:#C08457;
+      --shadow:0 22px 60px rgba(89,95,169,.18);
+      --radius:30px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;min-height:100%;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:linear-gradient(180deg,#f8f8ff 0%, #eef1ff 100%);color:var(--ink)}
+    body{overflow:auto}
+    .ambient,.ambient:before,.ambient:after{position:fixed;inset:auto;content:"";z-index:0;pointer-events:none;border-radius:999px;filter:blur(50px)}
+    .ambient{top:8%;left:6%;width:260px;height:260px;background:rgba(124,131,212,.22)}
+    .ambient:before{top:8vh;right:-65vw;width:320px;height:320px;background:rgba(89,95,169,.16)}
+    .ambient:after{bottom:-10vh;left:28vw;width:360px;height:360px;background:rgba(147,153,232,.18)}
+    .grid{position:fixed;inset:0;background-image:linear-gradient(rgba(89,95,169,.05) 1px, transparent 1px),linear-gradient(90deg, rgba(89,95,169,.05) 1px, transparent 1px);background-size:28px 28px;mask-image:radial-gradient(circle at center, black 50%, transparent 95%);pointer-events:none;z-index:0}
+    .screen{display:none;min-height:100vh;padding:20px;position:relative;z-index:2}
+    .screen.active{display:flex;align-items:center;justify-content:center}
+    #screen-ranking.active{align-items:flex-start;padding-top:20px;padding-bottom:20px}
+    .wrap{width:min(1220px,100%);min-height:760px;border-radius:34px;background:var(--glass);border:1px solid rgba(255,255,255,.75);box-shadow:var(--shadow);backdrop-filter:blur(16px);position:relative;overflow:hidden}
+    #screen-ranking .wrap{overflow:auto;max-height:none;min-height:0}
+    .topbar{position:absolute;top:22px;left:24px;right:24px;display:flex;justify-content:space-between;align-items:center;z-index:2}
+    .brand{display:flex;align-items:center;gap:14px}
+    .logo{width:62px;height:62px;border-radius:20px;background:transparent;display:grid;place-items:center;overflow:hidden}
+    .logo img{width:100%;height:100%;object-fit:contain;display:block}
+    .brand h1,.brand h2{margin:0;font-size:30px;line-height:1}
+    .sub{margin-top:6px;color:var(--muted);font-size:15px}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;background:rgba(89,95,169,.08);border:1px solid rgba(89,95,169,.12);font-size:14px;color:var(--brand)}
+    .center{height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:90px 32px 40px}
+    .hero-card,.task-card,.time-card,.result-card,.rank-main,.rank-side{background:rgba(255,255,255,.74);border:1px solid rgba(89,95,169,.12);box-shadow:0 14px 38px rgba(89,95,169,.08);border-radius:32px}
+    .hero-card{width:min(700px,100%);padding:34px}
+    .hero-title{font-size:60px;line-height:.95;letter-spacing:-.05em;margin:10px 0 0}
+    .hero-text{font-size:21px;line-height:1.45;color:var(--muted);margin:18px 0 0}
+    .input{width:100%;padding:18px 20px;border-radius:18px;border:1px solid rgba(89,95,169,.14);background:white;font-size:20px;color:var(--ink);margin:24px 0 14px;outline:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
+    .input:focus{border-color:rgba(89,95,169,.42);box-shadow:0 0 0 5px rgba(89,95,169,.10)}
+    .btn{border:none;border-radius:20px;padding:18px 28px;font-weight:900;font-size:20px;cursor:pointer;transition:.2s transform,.2s box-shadow,.2s opacity}
+    .btn:hover{transform:translateY(-2px)}
+    .btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:white;box-shadow:0 16px 34px rgba(89,95,169,.26)}
+    .btn-ghost{background:white;color:var(--brand);border:1px solid rgba(89,95,169,.14)}
+    .btn-stop{background:linear-gradient(135deg,#F97316,#EF4444);color:white;padding:24px 44px;font-size:36px;min-width:260px;box-shadow:0 18px 40px rgba(239,68,68,.24);animation:pulse 1s infinite}
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+    .task-card,.time-card,.result-card{width:min(920px,100%);padding:28px}
+    .player-chip{display:inline-flex;align-items:center;gap:10px;background:rgba(34,211,238,.09);color:#0f6d88;border:1px solid rgba(34,211,238,.18);padding:10px 14px;border-radius:999px;font-size:14px;margin-bottom:18px}
+    .label{font-size:13px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+    .task-title{font-size:58px;line-height:1;letter-spacing:-.05em;font-weight:900;margin:0 0 16px}
+    .question{font-size:28px;line-height:1.28;margin:0;color:var(--ink)}
+    .cats{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:24px}
+    .cat{padding:10px 14px;border-radius:999px;background:#fff;border:1px solid rgba(89,95,169,.12);font-size:14px;color:var(--brand)}
+    .time-value{font-size:140px;line-height:1;letter-spacing:-.06em;font-weight:900;color:var(--brand);margin:10px 0 0;text-shadow:0 8px 30px rgba(89,95,169,.14)}
+    .count{font-size:22px;color:var(--muted);margin-top:10px}
+    .timer-visible{font-size:150px;line-height:1;letter-spacing:-.06em;font-weight:900;color:var(--ink)}
+    .ghost-clock{width:260px;height:260px;border-radius:50%;display:grid;place-items:center;border:2px dashed rgba(89,95,169,.20);background:radial-gradient(circle at center, rgba(124,131,212,.10), rgba(124,131,212,0));box-shadow:inset 0 0 60px rgba(89,95,169,.04), 0 20px 60px rgba(89,95,169,.10);font-size:34px;font-weight:900;color:var(--brand)}
+    .hint{font-size:28px;line-height:1.35;max-width:760px;margin:26px auto 0}
+    .small{font-size:16px;color:var(--muted);margin-top:12px}
+    .row{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:30px}
+    .result-card{text-align:left}
+    .status{font-size:42px;font-weight:900;margin-top:6px}
+    .good{color:var(--good)} .warn{color:var(--warn)} .bad{color:var(--bad)}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:24px}
+    .stat{background:white;border:1px solid rgba(89,95,169,.1);border-radius:24px;padding:18px}
+    .stat .v{font-size:34px;font-weight:900;margin-top:8px}
+    .rank-layout{min-height:100%;display:grid;grid-template-columns:1.1fr .8fr;gap:20px;padding:90px 22px 40px}
+    .rank-main,.rank-side{padding:24px}
+    .rank-list{display:flex;flex-direction:column;gap:12px;margin-top:18px}
+    .rank-item{display:grid;grid-template-columns:70px 1fr auto;gap:14px;align-items:center;padding:14px;border-radius:22px;background:white;border:1px solid rgba(89,95,169,.10)}
+    .pos{width:50px;height:50px;border-radius:18px;display:grid;place-items:center;font-weight:900;background:rgba(89,95,169,.08);color:var(--brand)}
+    .p1 .pos{background:rgba(251,191,36,.16);color:var(--gold)}
+    .p2 .pos{background:rgba(203,213,225,.22);color:#64748B}
+    .p3 .pos{background:rgba(192,132,87,.18);color:var(--bronze)}
+    .player{font-size:19px;font-weight:900}
+    .meta{font-size:13px;color:var(--muted);margin-top:4px}
+    .score{font-size:26px;font-weight:900;color:var(--brand)}
+    .side-box{background:white;border:1px solid rgba(89,95,169,.10);border-radius:24px;padding:18px;margin-top:14px}
+    .side-big{font-size:34px;font-weight:900;margin-top:6px;color:var(--ink)}
+    .flash{position:absolute;left:24px;right:24px;bottom:22px;padding:16px 18px;border-radius:18px;background:rgba(220,38,38,.12);border:1px solid rgba(220,38,38,.14);color:#991b1b;font-weight:800;display:none}
+    .accent-strip{position:absolute;left:0;right:0;bottom:0;height:8px;background:linear-gradient(90deg,var(--brand),var(--brand3),#82dff1)}
+    @media (max-width: 1000px){
+      body{overflow:auto}
+      .screen{padding:12px}
+      .wrap{min-height:auto}
+      .hero-title{font-size:44px}
+      .task-title{font-size:40px}
+      .question,.hint{font-size:23px}
+      .time-value,.timer-visible{font-size:92px}
+      .stats{grid-template-columns:1fr 1fr}
+      .rank-layout{grid-template-columns:1fr;padding-top:84px}
+    }
+    @media (max-width: 640px){
+      .hero-card,.task-card,.time-card,.result-card,.rank-main,.rank-side{padding:20px;border-radius:24px}
+      .hero-title{font-size:36px}
+      .task-title{font-size:32px}
+      .time-value,.timer-visible{font-size:66px}
+      .ghost-clock{width:210px;height:210px;font-size:28px}
+      .stats{grid-template-columns:1fr}
+      .btn-stop{width:100%}
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient"></div>
+  <div class="grid"></div>
+
+  <section class="screen active" id="screen-name">
+    <div class="wrap">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo"><img src="logo.png" alt="Innotime" /></div>
+          <div>
+            <h1>Innotime Rush</h1>
+            <div class="sub">Marketplace de tareas · versión stand</div>
+          </div>
+        </div>
+        <div class="pill">💜 Branding Innotime</div>
+      </div>
+      <div class="center">
+        <div class="hero-card">
+          <div class="pill">Tiempo · precisión · ranking</div>
+          <div class="hero-title">Clava el tiempo.<br>Gana el ranking.</div>
+          <p class="hero-text">Escribe tu nombre, memoriza el tiempo y demuestra cuánto tardaría Innotime en encontrar a la empresa o persona ideal para cada tarea.</p>
+          <input class="input" id="playerNameInput" maxlength="16" placeholder="Tu nombre o alias" />
+          <button class="btn btn-primary" id="goToTaskBtn">Empezar partida</button>
+        </div>
+      </div>
+      <div class="flash" id="flashMsg"></div>
+      <div class="accent-strip"></div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-task">
+    <div class="wrap">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo"><img src="logo.png" alt="Innotime" /></div>
+          <div>
+            <h2>Innotime Rush</h2>
+            <div class="sub">Encuentra ayuda rápida para tareas reales</div>
+          </div>
+        </div>
+        <div class="pill">👤 <span id="playerChipTask">—</span></div>
+      </div>
+      <div class="center">
+        <div class="task-card">
+          <div class="label">Tarea publicada</div>
+          <div class="task-title" id="taskText">Tarea</div>
+          <p class="question">¿Cuánto tardará Innotime en encontrar la empresa o persona adecuada para esta tarea?</p>
+          <div class="cats">
+            <div class="cat">Reparaciones</div>
+            <div class="cat">Limpieza</div>
+            <div class="cat">Reformas</div>
+            <div class="cat">Informática</div>
+          </div>
+          <div class="row">
+            <button class="btn btn-primary" id="showTimeBtn">Mostrar tiempo</button>
+          </div>
+        </div>
+      </div>
+      <div class="accent-strip"></div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-time">
+    <div class="wrap">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo"><img src="logo.png" alt="Innotime" /></div>
+          <div>
+            <h2>Tiempo objetivo</h2>
+            <div class="sub">Memorízalo antes de que desaparezca</div>
+          </div>
+        </div>
+        <div class="pill">👤 <span id="playerChipTime">—</span></div>
+      </div>
+      <div class="center">
+        <div class="time-card">
+          <div class="label">Tiempo que debes clavar</div>
+          <div class="time-value" id="targetTimeValue">00.00 s</div>
+          <div class="count">Se ocultará en <span id="memorizeCountdown">5</span> s</div>
+        </div>
+      </div>
+      <div class="accent-strip"></div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-timer-visible">
+    <div class="wrap">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo"><img src="logo.png" alt="Innotime" /></div>
+          <div>
+            <h2>Crono visible</h2>
+            <div class="sub">Solo lo verás unos segundos</div>
+          </div>
+        </div>
+        <div class="pill">👤 <span id="playerChipVisible">—</span></div>
+      </div>
+      <div class="center">
+        <div class="time-card">
+          <div class="label">Tu intento</div>
+          <div class="timer-visible" id="visibleTimerValue">0.00 s</div>
+          <div class="count">Desaparece en <span id="visibleCountdown">5</span> s</div>
+        </div>
+      </div>
+      <div class="accent-strip"></div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-timer-hidden">
+    <div class="wrap">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo"><img src="logo.png" alt="Innotime" /></div>
+          <div>
+            <h2>Crono oculto</h2>
+            <div class="sub">Ahora manda tu percepción del tiempo</div>
+          </div>
+        </div>
+        <div class="pill">👤 <span id="playerChipHidden">—</span></div>
+      </div>
+      <div class="center">
+        <div class="ghost-clock">Sin reloj</div>
+        <p class="hint">El tiempo sigue corriendo, pero ya no puedes verlo. Pulsa STOP cuando creas que has clavado el objetivo.</p>
+        <div class="row">
+          <button class="btn btn-stop" id="stopBtn">STOP</button>
+        </div>
+        <div class="small">Cuanto más cerca estés del objetivo, más puntos consigues.</div>
+      </div>
+      <div class="accent-strip"></div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-result">
+    <div class="wrap">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo"><img src="logo.png" alt="Innotime" /></div>
+          <div>
+            <h2>Resultado</h2>
+            <div class="sub">Tu precisión ya cuenta para el ranking</div>
+          </div>
+        </div>
+        <div class="pill">👤 <span id="playerChipResult">—</span></div>
+      </div>
+      <div class="center">
+        <div class="result-card">
+          <div class="label">Resumen de la ronda</div>
+          <div class="status" id="statusText">Buen intento</div>
+          <div class="stats">
+            <div class="stat"><div class="label">Jugador</div><div class="v" id="resultPlayer">—</div></div>
+            <div class="stat"><div class="label">Objetivo</div><div class="v" id="resultTarget">0.00 s</div></div>
+            <div class="stat"><div class="label">Tu tiempo</div><div class="v" id="resultUser">0.00 s</div></div>
+            <div class="stat"><div class="label">Diferencia</div><div class="v" id="resultDiff">0.00 s</div></div>
+          </div>
+          <div class="stats" style="grid-template-columns:1fr;margin-top:16px;">
+            <div class="stat"><div class="label">Puntuación</div><div class="v" id="resultScore">0 pts</div></div>
+          </div>
+          <div class="row" style="justify-content:flex-start;">
+            <button class="btn btn-primary" id="toRankingBtn">Ver ranking</button>
+          </div>
+        </div>
+      </div>
+      <div class="accent-strip"></div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-ranking">
+    <div class="wrap">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo"><img src="logo.png" alt="Innotime" /></div>
+          <div>
+            <h2>Ranking del stand</h2>
+            <div class="sub">Top 10 de quienes mejor controlan el tiempo</div>
+          </div>
+        </div>
+        <div class="pill">🏆 Clasificación en directo</div>
+      </div>
+      <div class="rank-layout">
+        <div class="rank-main">
+          <div class="label">Clasificación</div>
+          <div class="rank-list" id="rankingList"></div>
+        </div>
+        <div class="rank-side">
+          <div class="side-box">
+            <div class="label">Último jugador</div>
+            <div class="side-big" id="rankingCurrentPlayer">—</div>
+          </div>
+          <div class="side-box">
+            <div class="label">Tu puntuación</div>
+            <div class="side-big" id="rankingLastScore">0 pts</div>
+          </div>
+          <div class="side-box">
+            <div class="label">Récord del día</div>
+            <div class="side-big" id="bestScore">0 pts</div>
+          </div>
+          <div class="side-box">
+            <div class="label">Partidas</div>
+            <div class="side-big" id="gamesCount">0</div>
+          </div>
+          <div class="row" style="justify-content:flex-start;">
+            <button class="btn btn-primary" id="nextBtn">Siguiente</button>
+          </div>
+        </div>
+      </div>
+      <div class="accent-strip"></div>
+    </div>
+  </section>
+
+  <script>
+    const tasks = [
+      'Encontrar una empresa para reparar la lavadora',
+      'Encontrar una empresa para reparar el frigorífico',
+      'Encontrar una empresa para reparar el lavavajillas',
+      'Encontrar una persona para limpiar una casa completa',
+      'Encontrar una empresa de limpieza para un piso turístico',
+      'Encontrar una empresa para una reforma de baño',
+      'Encontrar una empresa para pintar un piso',
+      'Encontrar una empresa para arreglar una persiana',
+      'Encontrar un informático para montar un ordenador',
+      'Encontrar un técnico para configurar el WiFi de casa',
+      'Encontrar ayuda para eliminar virus del portátil',
+      'Encontrar una empresa para instalar una lámpara',
+      'Encontrar una empresa para colgar muebles en casa',
+      'Encontrar una persona para limpiar cristales',
+      'Encontrar una empresa para una pequeña reforma de cocina',
+      'Encontrar soporte informático para una oficina pequeña',
+      'Encontrar una empresa para reparar un aire acondicionado',
+      'Encontrar un técnico para arreglar una impresora'
+    ];
+
+    const STORAGE_KEY = 'innotime_rush_ranking';
+    const GAMES_KEY = 'innotime_rush_games';
+
+    const screens = {
+      name: document.getElementById('screen-name'),
+      task: document.getElementById('screen-task'),
+      time: document.getElementById('screen-time'),
+      timerVisible: document.getElementById('screen-timer-visible'),
+      timerHidden: document.getElementById('screen-timer-hidden'),
+      result: document.getElementById('screen-result'),
+      ranking: document.getElementById('screen-ranking')
+    };
+
+    const playerNameInput = document.getElementById('playerNameInput');
+    const flashMsg = document.getElementById('flashMsg');
+    const taskText = document.getElementById('taskText');
+    const targetTimeValue = document.getElementById('targetTimeValue');
+    const memorizeCountdown = document.getElementById('memorizeCountdown');
+    const visibleTimerValue = document.getElementById('visibleTimerValue');
+    const visibleCountdown = document.getElementById('visibleCountdown');
+    const statusText = document.getElementById('statusText');
+    const resultPlayer = document.getElementById('resultPlayer');
+    const resultTarget = document.getElementById('resultTarget');
+    const resultUser = document.getElementById('resultUser');
+    const resultDiff = document.getElementById('resultDiff');
+    const resultScore = document.getElementById('resultScore');
+    const rankingList = document.getElementById('rankingList');
+    const rankingCurrentPlayer = document.getElementById('rankingCurrentPlayer');
+    const rankingLastScore = document.getElementById('rankingLastScore');
+    const bestScore = document.getElementById('bestScore');
+    const gamesCount = document.getElementById('gamesCount');
+    const playerChipTask = document.getElementById('playerChipTask');
+    const playerChipTime = document.getElementById('playerChipTime');
+    const playerChipVisible = document.getElementById('playerChipVisible');
+    const playerChipHidden = document.getElementById('playerChipHidden');
+    const playerChipResult = document.getElementById('playerChipResult');
+
+    let currentPlayer = '';
+    let currentTask = '';
+    let targetTime = 0;
+    let startTime = 0;
+    let rafId = null;
+    let memorizeInterval = null;
+    let memorizeTimeout = null;
+    let visibleInterval = null;
+    let visibleTimeout = null;
+    let playing = false;
+    let elapsedAtStop = 0;
+    let scoreAtStop = 0;
+
+    function showScreen(name) {
+      Object.values(screens).forEach(s => s.classList.remove('active'));
+      screens[name].classList.add('active');
+    }
+
+    function setPlayerEverywhere(name) {
+      playerChipTask.textContent = name;
+      playerChipTime.textContent = name;
+      playerChipVisible.textContent = name;
+      playerChipHidden.textContent = name;
+      playerChipResult.textContent = name;
+      rankingCurrentPlayer.textContent = name;
+    }
+
+    function randomTask() {
+      return tasks[Math.floor(Math.random() * tasks.length)];
+    }
+
+    function randomTarget() {
+      return +(Math.random() * (49.99 - 15.01) + 15.01).toFixed(2);
+    }
+
+    function showFlash(text) {
+      flashMsg.textContent = text;
+      flashMsg.style.display = 'block';
+      setTimeout(() => flashMsg.style.display = 'none', 1800);
+    }
+
+    function resetAllTimers() {
+      if (rafId) cancelAnimationFrame(rafId);
+      if (memorizeInterval) clearInterval(memorizeInterval);
+      if (memorizeTimeout) clearTimeout(memorizeTimeout);
+      if (visibleInterval) clearInterval(visibleInterval);
+      if (visibleTimeout) clearTimeout(visibleTimeout);
+      rafId = null;
+      memorizeInterval = null;
+      memorizeTimeout = null;
+      visibleInterval = null;
+      visibleTimeout = null;
+      playing = false;
+    }
+
+    function startFlow() {
+      const name = playerNameInput.value.trim().slice(0,16);
+      if (!name) {
+        showFlash('Escribe tu nombre para jugar');
+        return;
+      }
+      resetAllTimers();
+      currentPlayer = name;
+      currentTask = randomTask();
+      targetTime = randomTarget();
+      taskText.textContent = currentTask;
+      setPlayerEverywhere(currentPlayer);
+      showScreen('task');
+    }
+
+    function goToTimeScreen() {
+      targetTimeValue.textContent = targetTime.toFixed(2) + ' s';
+      memorizeCountdown.textContent = '5';
+      showScreen('time');
+      let left = 5;
+      memorizeInterval = setInterval(() => {
+        left -= 1;
+        memorizeCountdown.textContent = String(Math.max(left, 0));
+      }, 1000);
+      memorizeTimeout = setTimeout(() => {
+        clearInterval(memorizeInterval);
+        memorizeInterval = null;
+        startVisibleTimerScreen();
+      }, 5000);
+    }
+
+    function startVisibleTimerScreen() {
+      showScreen('timerVisible');
+      visibleTimerValue.textContent = '0.00 s';
+      visibleCountdown.textContent = '5';
+      startTime = performance.now();
+      playing = true;
+
+      function tick(now) {
+        if (!playing) return;
+        const elapsed = (now - startTime) / 1000;
+        visibleTimerValue.textContent = elapsed.toFixed(2) + ' s';
+        rafId = requestAnimationFrame(tick);
+      }
+      rafId = requestAnimationFrame(tick);
+
+      let left = 5;
+      visibleInterval = setInterval(() => {
+        left -= 1;
+        visibleCountdown.textContent = String(Math.max(left, 0));
+      }, 1000);
+      visibleTimeout = setTimeout(() => {
+        clearInterval(visibleInterval);
+        visibleInterval = null;
+        showScreen('timerHidden');
+      }, 5000);
+    }
+
+    function stopRound() {
+      if (!playing) return;
+      playing = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      if (visibleInterval) clearInterval(visibleInterval);
+      if (visibleTimeout) clearTimeout(visibleTimeout);
+
+      elapsedAtStop = (performance.now() - startTime) / 1000;
+      const diff = Math.abs(elapsedAtStop - targetTime);
+      scoreAtStop = calculateScore(diff);
+      const status = calculateStatus(diff);
+
+      statusText.textContent = status.text;
+      statusText.className = 'status ' + status.cls;
+      resultPlayer.textContent = currentPlayer;
+      resultTarget.textContent = targetTime.toFixed(2) + ' s';
+      resultUser.textContent = elapsedAtStop.toFixed(2) + ' s';
+      resultDiff.textContent = diff.toFixed(2) + ' s';
+      resultScore.textContent = scoreAtStop + ' pts';
+
+      saveResult(currentPlayer, currentTask, scoreAtStop, diff);
+      increaseGames();
+      renderRanking();
+      showScreen('result');
+    }
+
+    function calculateScore(diff) {
+      // 0 pts at >=10s, 1000 pts at 0s, continuous curve — no ties
+      if (diff >= 10) return 0;
+      return Math.round(1000 * Math.pow(1 - diff / 10, 2.5));
+    }
+
+    function calculateStatus(diff) {
+      if (diff <= 0.10) return { text: '🔥 Match perfecto', cls: 'good' };
+      if (diff <= 0.40) return { text: '⚡ Casi instantáneo', cls: 'good' };
+      if (diff <= 1.00) return { text: '🎯 Muy preciso', cls: 'warn' };
+      if (diff <= 2.50) return { text: '👏 Buen ojo', cls: 'warn' };
+      if (diff <= 5.00) return { text: '😬 Un poco lejos', cls: 'bad' };
+      return { text: '😅 Se escapó', cls: 'bad' };
+    }
+
+    function loadRanking() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+      catch { return []; }
+    }
+
+    function saveRanking(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function saveResult(name, task, score, diff) {
+      const ranking = loadRanking();
+      ranking.push({ name, task, score, diff: Number(diff.toFixed(4)), createdAt: Date.now() });
+      ranking.sort((a,b) => b.score - a.score || a.diff - b.diff);
+      saveRanking(ranking.slice(0,10));
+    }
+
+    function increaseGames() {
+      const total = Number(localStorage.getItem(GAMES_KEY) || '0') + 1;
+      localStorage.setItem(GAMES_KEY, String(total));
+      gamesCount.textContent = String(total);
+    }
+
+    function renderRanking() {
+      const ranking = loadRanking();
+      rankingList.innerHTML = '';
+      gamesCount.textContent = localStorage.getItem(GAMES_KEY) || '0';
+      rankingLastScore.textContent = scoreAtStop + ' pts';
+      if (!ranking.length) {
+        rankingList.innerHTML = '<div class="rank-item"><div class="pos">—</div><div><div class="player">Todavía no hay récords</div><div class="meta">Sé la primera persona en jugar</div></div><div class="score">0</div></div>';
+        bestScore.textContent = '0 pts';
+        return;
+      }
+      bestScore.textContent = ranking[0].score + ' pts';
+      ranking.forEach((item, i) => {
+        const row = document.createElement('div');
+        row.className = 'rank-item ' + (i===0 ? 'p1' : i===1 ? 'p2' : i===2 ? 'p3' : '');
+        row.innerHTML = `
+          <div class="pos">#${i+1}</div>
+          <div>
+            <div class="player">${escapeHtml(item.name)}</div>
+            <div class="meta">${escapeHtml(item.task)} · ±${Number(item.diff).toFixed(2)} s</div>
+          </div>
+          <div class="score">${item.score}</div>`;
+        rankingList.appendChild(row);
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    document.getElementById('goToTaskBtn').addEventListener('click', startFlow);
+    document.getElementById('showTimeBtn').addEventListener('click', goToTimeScreen);
+    document.getElementById('stopBtn').addEventListener('click', stopRound);
+    document.getElementById('toRankingBtn').addEventListener('click', () => showScreen('ranking'));
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      resetAllTimers();
+      playerNameInput.value = '';
+      showScreen('name');
+      playerNameInput.focus();
+    });
+
+    playerNameInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') startFlow();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && playing) {
+        e.preventDefault();
+        stopRound();
+      }
+    });
+
+    renderRanking();
+  </script>
+</body>
+</html>
